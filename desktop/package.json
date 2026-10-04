@@ -1,0 +1,50 @@
+{
+    "name": "personal-manager-desktop",
+    "version": "0.1.0",
+    "description": "Personal Manager local-first desktop application",
+    "author": "Personal Manager",
+    "private": true,
+    "main": "main.cjs",
+    "scripts": {
+        "start": "electron .",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder --win nsis"
+    },
+    "devDependencies": {
+        "electron": "^40.0.0",
+        "electron-builder": "^26.0.0"
+    },
+    "build": {
+        "appId": "com.personalmanager.desktop",
+        "productName": "Personal Manager",
+        "asar": true,
+        "directories": {
+            "output": "release"
+        },
+        "files": [
+            "main.cjs",
+            "preload.cjs",
+            "package.json"
+        ],
+        "extraResources": [{
+                "from": "../backend/dist/personal-manager-backend",
+                "to": "backend"
+            },
+            {
+                "from": "../frontend/dist",
+                "to": "frontend/dist"
+            }
+        ],
+        "win": {
+            "icon": "build/icon.ico",
+            "target": [{ "target": "nsis", "arch": ["x64"] }],
+            "artifactName": "Personal-Manager-Setup-${version}.${ext}"
+        },
+        "nsis": {
+            "oneClick": false,
+            "perMachine": false,
+            "allowToChangeInstallationDirectory": true,
+            "deleteAppDataOnUninstall": false
+        }
+    }
+}

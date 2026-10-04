@@ -1,0 +1,35 @@
+# Local credentials and application data
+.env
+.venv/
+**/.env
+**/.venv/
+**/personal.db
+**/personal.db-*
+**/backups/
+**/logs/
+
+# JavaScript / frontend build artifacts
+**/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/.playwright-userdata*/
+
+# Python / packaging artifacts
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.pytest-tmp/
+backend/build/
+backend/dist/
+backend/release-smoke-data/
+
+# Electron artifacts
+desktop/release/
+desktop/dist/
+
+# Editor / OS
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
