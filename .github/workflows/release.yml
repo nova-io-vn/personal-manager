@@ -39,7 +39,7 @@ jobs:
         run: npm ci
       - name: Install desktop dependencies
         working-directory: desktop
-        run: npm ci
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
       - name: Install Playwright Chromium
         working-directory: frontend
         run: npx playwright install chromium
