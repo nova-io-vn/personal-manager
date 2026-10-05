@@ -52,7 +52,13 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        configured = [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        # Capacitor WebViews and Electron file:// pages use origins that are
+        # not present in the normal browser development list.
+        for origin in ("capacitor://localhost", "http://localhost", "https://localhost", "null"):
+            if origin not in configured:
+                configured.append(origin)
+        return configured
 
 
 @lru_cache
