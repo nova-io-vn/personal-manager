@@ -1,12 +1,15 @@
 from logging.config import fileConfig
+import os
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.database.base import Base
-from app.models import calendar, finance, health, journal, notification  # noqa: F401
+from app.models import calendar, cloud, finance, health, journal, notification, tasks, debt  # noqa: F401
 
 config = context.config
+if os.getenv("ALEMBIC_DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", os.environ["ALEMBIC_DATABASE_URL"].replace("%", "%%"))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 

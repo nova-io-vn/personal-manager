@@ -5,9 +5,10 @@ from app.models.journal import JournalEntry, JournalTag
 from app.models.notification import ApplicationSetting, Notification
 from app.models.tasks import Task
 from app.models.debt import Debt, DebtDirection
+from app.models.cloud import CloudDevice, CloudUser, SyncChange
 
 __all__ = [
     "Account", "Budget", "Transaction", "TransactionCategory", "Schedule", "ScheduleCategory", "ScheduleOccurrenceState",
     "BodyProfile", "BodyMeasurement", "HealthDailyLog", "Food", "FoodLog", "JournalEntry", "JournalTag",
-    "ApplicationSetting", "Notification", "Task", "Debt", "DebtDirection",
+    "ApplicationSetting", "Notification", "Task", "Debt", "DebtDirection", "CloudUser", "CloudDevice", "SyncChange",
 ]

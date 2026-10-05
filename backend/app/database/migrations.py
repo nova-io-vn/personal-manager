@@ -7,7 +7,7 @@ from sqlalchemy import Engine, inspect
 from app.database.base import Base
 
 
-ALEMBIC_REVISION = "0003_tasks_debts_journal_drawing"
+ALEMBIC_REVISION = "0004_cloud_auth_sync"
 PRE_OCCURRENCE_TABLE = "schedule_occurrence_states"
 OPTIONAL_NEW_TABLES = {"tasks", "debts"}
 OPTIONAL_NEW_COLUMNS = {("journal_entries", "drawing_data")}

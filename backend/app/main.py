@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import router
 from app.config import get_settings
 from app.database.database import SessionLocal, engine
+from app.database.cloud import ensure_cloud_schema
 from app.database.migrations import ensure_database_schema
 from app.core.scheduler import create_scheduler
 from app.models import calendar, debt, finance, health, journal, notification, tasks  # noqa: F401 - registers all models with Base
@@ -18,6 +19,7 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     ensure_database_schema(engine, settings.database_url)
+    ensure_cloud_schema()
     with SessionLocal() as db:
         seed_categories(db)
         seed_schedule_categories(db)
