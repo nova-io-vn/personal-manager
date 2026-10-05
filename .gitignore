@@ -37,4 +37,6 @@ Thumbs.db
 .env.local
 **/.env.vercel.local
 **/.env.production.local
+*.jks
+*.keystore
 node_modules/

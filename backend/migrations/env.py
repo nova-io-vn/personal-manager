@@ -8,8 +8,9 @@ from app.database.base import Base
 from app.models import calendar, cloud, finance, health, journal, notification, tasks, debt  # noqa: F401
 
 config = context.config
-if os.getenv("ALEMBIC_DATABASE_URL"):
-    config.set_main_option("sqlalchemy.url", os.environ["ALEMBIC_DATABASE_URL"].replace("%", "%%"))
+migration_url = os.getenv("ALEMBIC_DATABASE_URL") or os.getenv("DATABASE_URL")
+if migration_url:
+    config.set_main_option("sqlalchemy.url", migration_url.replace("%", "%%"))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
