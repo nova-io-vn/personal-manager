@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     # Cloud migrations are applied by the release/deployment step. Running
     # them during every Vercel cold start adds latency and can exceed the
     # serverless function timeout.
-    if not is_vercel:
+    if not is_vercel and settings.cloud_database_url.strip() != settings.database_url.strip():
         ensure_cloud_schema()
     with SessionLocal() as db:
         seed_categories(db)
