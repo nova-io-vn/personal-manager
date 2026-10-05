@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,17 +18,23 @@ from app.repositories.settings import seed_settings
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
+    is_vercel = os.getenv("VERCEL") == "1"
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     ensure_database_schema(engine, settings.database_url)
-    ensure_cloud_schema()
+    # Cloud migrations are applied by the release/deployment step. Running
+    # them during every Vercel cold start adds latency and can exceed the
+    # serverless function timeout.
+    if not is_vercel:
+        ensure_cloud_schema()
     with SessionLocal() as db:
         seed_categories(db)
         seed_schedule_categories(db)
         seed_settings(db)
-    scheduler = create_scheduler()
+    scheduler = None if is_vercel else create_scheduler()
     app.state.notification_scheduler = scheduler
     try:
-        scheduler.start()
+        if scheduler is not None:
+            scheduler.start()
     except Exception:
         scheduler = None
         app.state.notification_scheduler = None
