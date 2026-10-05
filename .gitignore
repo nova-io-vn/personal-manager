@@ -35,4 +35,6 @@ Thumbs.db
 .DS_Store
 .neon
 .env.local
+**/.env.vercel.local
+**/.env.production.local
 node_modules/
