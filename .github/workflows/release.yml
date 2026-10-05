@@ -108,8 +108,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: [windows, android]
-    # Do not distribute the Android shell until the mobile-local repository/sync path is ready.
-    if: ${{ vars.MOBILE_RELEASE_READY == 'true' }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -120,3 +118,4 @@ jobs:
             artifacts/windows-installer/*
             artifacts/android-apk/*
           generate_release_notes: true
+          make_latest: true

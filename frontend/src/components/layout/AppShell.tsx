@@ -3,6 +3,7 @@ import { Activity, BookOpen, CalendarDays, CheckSquare, CircleDollarSign, HeartP
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { NotificationBell } from '../../features/settings/components/NotificationBell'
 import { DesktopUpdatePanel } from './DesktopUpdatePanel'
+import { MobileUpdateBanner } from './MobileUpdateBanner'
 
 const navigation = [
   { label: 'Tổng quan', to: '/', icon: LayoutDashboard },
@@ -50,6 +51,7 @@ export function AppShell() {
         <Link className={`icon-button settings-button${location.pathname === '/settings' ? ' is-open' : ''}`} to="/settings" aria-label="Cài đặt" title="Cài đặt"><Settings size={18} /></Link>
       </div>
     </header>
+    <MobileUpdateBanner />
     <div className="mobile-page-label">{pageTitle}</div>
     <main className="app-main"><Outlet />{location.pathname === '/settings' && <div className="page-content"><DesktopUpdatePanel /></div>}</main>
   </div>

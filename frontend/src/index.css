@@ -219,6 +219,9 @@ a { color: inherit; text-decoration: none; }
 .mood-button span { font-size: 19px; }.mood-button small { font-size: 10px; font-weight: 700; }.mood-button:hover, .mood-button.is-selected { border-color: #8eb3d3; background: #eef6fc; color: var(--color-navy); }
 .tag-chip { padding: 6px 10px; border-radius: 999px; background: #f0f3f7; color: #718095; font-size: 11px; font-weight: 700; }.tag-chip.is-selected { background: #dfeef9; color: var(--color-navy); }
 .danger-text { display: inline-flex; align-items: center; gap: 6px; color: #bd2b3c; font-size: 12px; font-weight: 700; }
+.mobile-update-banner { display: flex; align-items: center; gap: 14px; margin: 14px clamp(14px, 3vw, 48px) 0; padding: 11px 14px; border: 1px solid #c8dff0; border-radius: 13px; background: #f5fbff; color: var(--color-navy); box-shadow: var(--shadow-sm); }
+.mobile-update-banner > div { display: grid; min-width: 0; flex: 1; gap: 2px; }.mobile-update-banner strong { font-size: 13px; }.mobile-update-banner span { color: #708399; font-size: 11px; }
+@media (max-width: 640px) { .mobile-update-banner { align-items: stretch; flex-wrap: wrap; }.mobile-update-banner .button-primary { order: 3; width: 100%; } }
 @media (max-width: 640px) { .page-heading-row { align-items: stretch; flex-direction: column; }.page-heading-row > .button-primary { align-self: start; }.drawing-canvas { min-height: 260px; }.task-row, .debt-row { padding: 11px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 @media (max-width: 1260px) {
