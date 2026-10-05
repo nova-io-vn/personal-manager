@@ -5,7 +5,7 @@ import { AlertCircle, Check, Circle, CircleCheck } from 'lucide-react'
 import type { Schedule, ScheduleCategory } from '../types/calendar'
 import { parseApiDateTime } from '../../../utils/dateTime'
 
-const HOUR_HEIGHT = 64
+const HOUR_HEIGHT = 76
 const DAY_HEIGHT = HOUR_HEIGHT * 24
 
 type TaskState = 'UPCOMING' | 'IN_PROGRESS' | 'OVERDUE' | 'COMPLETED'
@@ -46,7 +46,7 @@ export function WeekCalendar({
     return () => media.removeEventListener('change', onChange)
   }, [])
   const visibleDays = compact ? [days[selectedDay] ?? days[0]] : days
-  const gridColumns = compact ? 'grid-cols-[56px_minmax(0,1fr)]' : 'grid-cols-[64px_repeat(7,minmax(115px,1fr))]'
+  const gridColumns = compact ? 'grid-cols-[64px_minmax(0,1fr)]' : 'grid-cols-[76px_repeat(7,minmax(125px,1fr))]'
   const todayIsVisible = days.some((day) => isSameDay(day, now))
   const categoryMap = new Map(categories.map((item) => [item.id, item]))
 
@@ -60,9 +60,9 @@ export function WeekCalendar({
             {visibleDays.map((day) => {
               const today = isSameDay(day, now)
               return (
-                <div className={`border-l border-slate-100 px-2 py-3 text-center ${today ? 'bg-blue-50/65' : ''}`} key={format(day, 'yyyy-MM-dd')}>
-                  <p className={`text-[11px] font-bold uppercase ${today ? 'text-blue-600' : 'text-slate-400'}`}>{format(day, 'EEE', { locale: vi })}</p>
-                  <p className={`mx-auto mt-1 grid size-8 place-items-center rounded-full text-lg font-bold ${today ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{format(day, 'dd')}</p>
+                <div className={`border-l border-slate-200/80 px-2 py-3.5 text-center ${today ? 'bg-blue-50/75' : ''}`} key={format(day, 'yyyy-MM-dd')}>
+                  <p className={`text-xs font-extrabold uppercase tracking-wide ${today ? 'text-blue-700' : 'text-slate-500'}`}>{format(day, 'EEEE', { locale: vi })}</p>
+                  <p className={`mx-auto mt-1 grid size-9 place-items-center rounded-full text-xl font-extrabold ${today ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-800'}`}>{format(day, 'dd')}</p>
                 </div>
               )
             })}
@@ -72,7 +72,7 @@ export function WeekCalendar({
         <div className={`grid ${gridColumns}`}>
           <div className="relative" style={{ height: DAY_HEIGHT }}>
             {Array.from({ length: 25 }, (_, hour) => (
-              <span className="absolute right-3 text-[10px] text-slate-400" style={{ top: hour * HOUR_HEIGHT - 7 }} key={hour}>
+              <span className="absolute right-3 text-xs font-semibold tabular-nums text-slate-500" style={{ top: hour * HOUR_HEIGHT - 8 }} key={hour}>
                 {String(hour).padStart(2, '0')}:00
               </span>
             ))}
@@ -133,8 +133,8 @@ export function WeekCalendar({
                           {item.completed ? <Check size={15} className="text-slate-500" /> : <Circle size={15} />}
                         </button>
                         <button type="button" className="min-w-0 flex-1 overflow-hidden px-1.5 py-1.5 text-left" onClick={() => onEventClick(item)}>
-                          <p className={`truncate text-[11px] font-bold ${state === 'COMPLETED' ? 'text-slate-500 line-through' : ''}`} style={{ color: state === 'UPCOMING' ? color : stateStyles.text }}>{item.title}</p>
-                          <p className="truncate text-[10px] text-slate-500">{format(start, 'HH:mm')} – {format(end, 'HH:mm')}</p>
+                          <p className={`truncate text-[13px] font-extrabold leading-5 ${state === 'COMPLETED' ? 'text-slate-500 line-through' : ''}`} style={{ color: state === 'UPCOMING' ? color : stateStyles.text }}>{item.title}</p>
+                          <p className="truncate text-[11px] font-semibold tabular-nums text-slate-600">{format(start, 'HH:mm')} – {format(end, 'HH:mm')}</p>
                           {stateStyles.label && <p className="mt-0.5 flex items-center gap-1 truncate text-[10px] font-semibold" style={{ color: stateStyles.text }}>{stateStyles.icon}{stateStyles.label}</p>}
                         </button>
                       </div>

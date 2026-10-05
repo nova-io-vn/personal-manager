@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Activity, BookOpen, CalendarDays, CheckSquare, CircleDollarSign, HeartPulse, LayoutDashboard, Plus, Settings, Sparkles, WalletCards, X } from 'lucide-react'
+import { Activity, BookOpen, CalendarDays, CheckSquare, CircleDollarSign, HeartPulse, LayoutDashboard, Package, Plus, Settings, Sparkles, X } from 'lucide-react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { NotificationBell } from '../../features/settings/components/NotificationBell'
 import { DesktopUpdatePanel } from './DesktopUpdatePanel'
@@ -13,6 +13,7 @@ const navigation = [
   { label: 'Nhật ký', to: '/journal', icon: BookOpen },
   { label: 'Gemini', to: '/ai', icon: Sparkles },
   { label: 'Việc cần làm', to: '/tasks', icon: CheckSquare },
+  { label: 'Đồ dùng', to: '/belongings', icon: Package },
 ]
 
 const quickActions = [
@@ -22,6 +23,7 @@ const quickActions = [
   { label: 'Thực phẩm', detail: 'Mở sổ dinh dưỡng', to: '/health?quickAdd=food', icon: Plus },
   { label: 'Nhật ký', detail: 'Viết ghi chú hôm nay', to: '/journal?quickAdd=journal', icon: BookOpen },
   { label: 'Việc cần làm', detail: 'Ghi nhanh việc chưa có lịch', to: '/tasks', icon: CheckSquare },
+  { label: 'Đồ dùng', detail: 'Thêm tài sản cá nhân', to: '/belongings', icon: Package },
 ]
 
 export function AppShell() {
@@ -31,10 +33,6 @@ export function AppShell() {
 
   return <div className="app-shell">
     <header className="topbar">
-      <Link to="/" className="brand" aria-label="Personal Manager — Tổng quan">
-        <span className="brand-mark"><WalletCards size={20} strokeWidth={2.1} /></span>
-        <span className="brand-copy"><strong>Personal Manager</strong><small>Không gian của bạn</small></span>
-      </Link>
       <nav className="top-nav" aria-label="Điều hướng chính">
         {navigation.map(({ label, to, icon: Icon }) => <NavLink end={to === '/'} key={to} to={to} className={({ isActive }) => `top-nav-link${isActive ? ' is-active' : ''}`}>
           <Icon size={17} strokeWidth={1.9} /><span>{label}</span>

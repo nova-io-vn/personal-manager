@@ -1,50 +1,75 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { BellRing, Bot, Database, LoaderCircle, LockKeyhole, Send, Settings2 } from 'lucide-react'
-import { getApiError, isOfflineAndroid } from '../../../services/api'
+import { Bot, LoaderCircle, LockKeyhole, Save, Send, Webhook } from 'lucide-react'
+import { getApiError } from '../../../services/api'
 import { settingsApi } from '../services/settingsApi'
 import type { AppSettings } from '../types/settings'
 
 export function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings | null>(null)
-  const [telegramToken, setTelegramToken] = useState(''); const [telegramTouched, setTelegramTouched] = useState(false)
-  const [geminiKey, setGeminiKey] = useState(''); const [geminiTouched, setGeminiTouched] = useState(false)
-  const [loading, setLoading] = useState(true); const [busy, setBusy] = useState(false)
-  const [error, setError] = useState(''); const [notice, setNotice] = useState('')
+  const [telegramToken, setTelegramToken] = useState('')
+  const [telegramTouched, setTelegramTouched] = useState(false)
+  const [geminiKey, setGeminiKey] = useState('')
+  const [geminiTouched, setGeminiTouched] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
 
-
-  useEffect(() => { const load = async () => { try { setSettings(await settingsApi.get()) } catch (err) { setError(getApiError(err)) } finally { setLoading(false) } }; void load() }, [])
+  useEffect(() => {
+    const load = async () => { try { setSettings(await settingsApi.get()) } catch (err) { setError(getApiError(err)) } finally { setLoading(false) } }
+    void load()
+  }, [])
   const update = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => setSettings((current) => current ? { ...current, [key]: value } : current)
   const run = async (operation: () => Promise<string>) => { setBusy(true); setError(''); setNotice(''); try { setNotice(await operation()) } catch (err) { setError(getApiError(err)) } finally { setBusy(false) } }
-
   const save = () => run(async () => {
     if (!settings) return ''
-    if (isOfflineAndroid && (telegramTouched && telegramToken || geminiTouched && geminiKey)) {
-      throw new Error('Tablet offline chưa hỗ trợ lưu khóa Gemini hoặc Telegram.')
-    }
     const payload: Partial<AppSettings> & { telegram_bot_token?: string | null; gemini_api_key?: string | null } = {
-      currency: settings.currency, default_reminder_minutes: settings.default_reminder_minutes,
-      notifications_enabled: isOfflineAndroid ? false : settings.notifications_enabled, schedule_reminders_enabled: isOfflineAndroid ? false : settings.schedule_reminders_enabled,
-      budget_warnings_enabled: isOfflineAndroid ? false : settings.budget_warnings_enabled, journal_reminder_enabled: isOfflineAndroid ? false : settings.journal_reminder_enabled,
-      journal_reminder_time: settings.journal_reminder_time, health_reminder_enabled: isOfflineAndroid ? false : settings.health_reminder_enabled,
-      health_reminder_time: settings.health_reminder_time, daily_summary_enabled: isOfflineAndroid ? false : settings.daily_summary_enabled,
-      daily_summary_time: settings.daily_summary_time, telegram_enabled: settings.telegram_enabled,
-      telegram_chat_id: settings.telegram_chat_id, gemini_enabled: isOfflineAndroid ? false : settings.gemini_enabled, gemini_model: settings.gemini_model,
+      telegram_enabled: settings.telegram_enabled,
+      telegram_chat_id: settings.telegram_chat_id,
+      gemini_enabled: settings.gemini_enabled,
+      gemini_model: settings.gemini_model,
     }
     if (telegramTouched) payload.telegram_bot_token = telegramToken
     if (geminiTouched) payload.gemini_api_key = geminiKey
-    setSettings(await settingsApi.update(payload)); setTelegramToken(''); setTelegramTouched(false); setGeminiKey(''); setGeminiTouched(false)
-    return isOfflineAndroid ? 'Đã lưu cài đặt. Nhắc nền, Gemini và Telegram chưa khả dụng khi tablet chạy độc lập.' : 'Đã lưu cài đặt.'
+    setSettings(await settingsApi.update(payload))
+    setTelegramToken(''); setTelegramTouched(false); setGeminiKey(''); setGeminiTouched(false)
+    return 'Đã lưu cấu hình.'
   })
 
   if (loading) return <div className="page-content"><div className="card flex min-h-[420px] items-center justify-center gap-2 text-sm text-slate-400"><LoaderCircle className="animate-spin" size={17} /> Đang tải cài đặt…</div></div>
   if (!settings) return <div className="page-content"><div className="card p-8 text-center text-sm text-rose-600">{error || 'Không thể tải cài đặt.'}</div></div>
 
-  return <div className="page-content"><div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm font-semibold text-blue-600">Personal Manager</p><h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-800">Cài đặt</h2><p className="mt-1 text-sm text-slate-500">Cấu hình dùng chung trên Desktop và tablet.</p></div><button className="button-primary" onClick={() => void save()} disabled={busy}>{busy ? 'Đang xử lý…' : 'Lưu cài đặt'}</button></div>{error && <Alert danger>{error}</Alert>}{notice && <Alert>{notice}</Alert>}<div className="grid gap-5 xl:grid-cols-2"><div className="space-y-5"><Section icon={<Settings2 size={18} />} title="Chung" description="Thiết lập mặc định của ứng dụng."><div className="grid gap-4 md:grid-cols-2"><Field label="Đơn vị tiền tệ"><select className="field" value={settings.currency} onChange={(event) => update('currency', event.target.value)}><option value="VND">VND — Việt Nam đồng</option><option value="USD">USD — US Dollar</option></select></Field><Field label="Nhắc lịch mặc định"><select className="field" value={settings.default_reminder_minutes} onChange={(event) => update('default_reminder_minutes', Number(event.target.value))}><option value={0}>Không nhắc</option><option value={5}>5 phút</option><option value={10}>10 phút</option><option value={15}>15 phút</option><option value={30}>30 phút</option><option value={60}>1 giờ</option></select></Field></div></Section><Section icon={<BellRing size={18} />} title="Thông báo" description="Thông báo được tạo từ dữ liệu dùng chung."><Toggle label="Bật hệ thống thông báo" checked={settings.notifications_enabled} onChange={(value) => update('notifications_enabled', value)} /><Toggle label="Nhắc lịch trình" checked={settings.schedule_reminders_enabled} onChange={(value) => update('schedule_reminders_enabled', value)} /><Toggle label="Cảnh báo ngân sách" checked={settings.budget_warnings_enabled} onChange={(value) => update('budget_warnings_enabled', value)} /><TimedToggle label="Nhắc viết nhật ký" checked={settings.journal_reminder_enabled} time={settings.journal_reminder_time} onChange={(value) => update('journal_reminder_enabled', value)} onTime={(value) => update('journal_reminder_time', value)} /><TimedToggle label="Nhắc cập nhật sức khỏe" checked={settings.health_reminder_enabled} time={settings.health_reminder_time} onChange={(value) => update('health_reminder_enabled', value)} onTime={(value) => update('health_reminder_time', value)} /><TimedToggle label="Tổng kết hằng ngày" checked={settings.daily_summary_enabled} time={settings.daily_summary_time} onChange={(value) => update('daily_summary_enabled', value)} onTime={(value) => update('daily_summary_time', value)} /></Section><Section icon={<Bot size={18} />} title="Gemini" description="Phân tích context tổng hợp; không có quyền sửa dữ liệu."><Toggle label="Bật Gemini" checked={settings.gemini_enabled} onChange={(value) => update('gemini_enabled', value)} /><div className="mt-4 space-y-4"><Field label="API Key"><input className="field" type="password" autoComplete="new-password" value={geminiKey} onChange={(event) => { setGeminiKey(event.target.value); setGeminiTouched(true) }} placeholder={settings.gemini_key_configured ? '•••••••• (đã lưu)' : 'Nhập Gemini API key'} /></Field><Field label="Model"><input className="field" value={settings.gemini_model} onChange={(event) => update('gemini_model', event.target.value)} /></Field><button className="button-secondary w-full justify-center" disabled={busy || !settings.gemini_key_configured} onClick={() => void run(async () => (await settingsApi.testGemini()).message)}><Bot size={15} /> Kiểm tra Gemini</button></div></Section></div><div className="space-y-5"><Section icon={<Send size={18} />} title="Telegram" description="Gửi thông báo qua Telegram Bot API."><Toggle label="Bật Telegram" checked={settings.telegram_enabled} onChange={(value) => update('telegram_enabled', value)} /><div className="mt-4 space-y-4"><Field label="Bot Token"><input className="field" type="password" autoComplete="new-password" value={telegramToken} onChange={(event) => { setTelegramToken(event.target.value); setTelegramTouched(true) }} placeholder={settings.telegram_token_configured ? '•••••••• (đã lưu)' : 'Nhập bot token'} /></Field><Field label="Chat ID"><input className="field" value={settings.telegram_chat_id ?? ''} onChange={(event) => update('telegram_chat_id', event.target.value)} placeholder="123456789" /></Field><button className="button-secondary w-full justify-center" disabled={busy || !settings.telegram_token_configured || !settings.telegram_chat_id} onClick={() => void run(async () => (await settingsApi.testTelegram()).message)}><Send size={15} /> Gửi thử</button></div><SecurityNote /></Section><Section icon={<Database size={18} />} title="Dữ liệu" description="Dữ liệu được lưu trên PostgreSQL dùng chung."><div className="space-y-3"><p className="text-sm text-slate-500">Desktop và tablet đều làm việc trên cùng một dữ liệu cloud. Sao lưu/khôi phục PostgreSQL sẽ được bổ sung riêng.</p></div></Section></div></div></div>
+  const integrationReady = settings.telegram_token_configured && Boolean(settings.telegram_chat_id)
+  return <div className="page-content settings-page">
+    <div className="page-heading-row"><div><p className="eyebrow">Kết nối</p><h1>Cài đặt</h1><p className="page-subtitle">Chỉ quản lý hai dịch vụ ngoài: Gemini và Telegram.</p></div><button className="button-primary" onClick={() => void save()} disabled={busy}><Save size={16} /> {busy ? 'Đang lưu…' : 'Lưu cài đặt'}</button></div>
+    {error && <Alert danger>{error}</Alert>}{notice && <Alert>{notice}</Alert>}
+    <div className="settings-integrations">
+      <Section icon={<Bot size={19} />} title="Gemini" description="Trợ lý đọc ngữ cảnh đã tổng hợp từ dữ liệu của bạn; không tự ý sửa dữ liệu.">
+        <Toggle label="Bật Gemini" checked={settings.gemini_enabled} onChange={(value) => update('gemini_enabled', value)} />
+        <div className="mt-5 space-y-4">
+          <Field label="API Key"><input className="field" type="password" autoComplete="new-password" value={geminiKey} onChange={(event) => { setGeminiKey(event.target.value); setGeminiTouched(true) }} placeholder={settings.gemini_key_configured ? '•••••••• (đã lưu)' : 'Nhập Gemini API key'} /></Field>
+          <Field label="Model"><input className="field" value={settings.gemini_model} onChange={(event) => update('gemini_model', event.target.value)} placeholder="gemini-3.5-flash" /></Field>
+          <button className="button-secondary w-full" disabled={busy || !settings.gemini_key_configured} onClick={() => void run(async () => (await settingsApi.testGemini()).message)}><Bot size={15} /> Kiểm tra Gemini</button>
+        </div>
+      </Section>
+      <Section icon={<Send size={19} />} title="Telegram" description="Nhận nhắc việc và tương tác với Personal Manager từ bot riêng của bạn.">
+        <Toggle label="Bật Telegram" checked={settings.telegram_enabled} onChange={(value) => update('telegram_enabled', value)} />
+        <div className="mt-5 space-y-4">
+          <Field label="Bot Token"><input className="field" type="password" autoComplete="new-password" value={telegramToken} onChange={(event) => { setTelegramToken(event.target.value); setTelegramTouched(true) }} placeholder={settings.telegram_token_configured ? '•••••••• (đã lưu)' : 'Nhập bot token'} /></Field>
+          <Field label="Chat ID"><input className="field" value={settings.telegram_chat_id ?? ''} onChange={(event) => update('telegram_chat_id', event.target.value)} placeholder="123456789" /></Field>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button className="button-secondary w-full" disabled={busy || !integrationReady} onClick={() => void run(async () => (await settingsApi.testTelegram()).message)}><Send size={15} /> Gửi thử</button>
+            <button className="button-secondary w-full" disabled={busy || !integrationReady} onClick={() => void run(async () => (await settingsApi.registerTelegramWebhook()).message)}><Webhook size={15} /> Bật tương tác</button>
+          </div>
+        </div>
+        <SecurityNote />
+      </Section>
+    </div>
+  </div>
 }
 
-function Section({ icon, title, description, children }: { icon: ReactNode; title: string; description: string; children: ReactNode }) { return <section className="card p-5"><div className="flex items-start gap-3 border-b border-slate-100 pb-4"><div className="grid h-9 w-9 place-items-center rounded-lg bg-blue-50 text-blue-600">{icon}</div><div><h3 className="font-bold text-slate-800">{title}</h3><p className="mt-1 text-xs text-slate-400">{description}</p></div></div><div className="pt-5">{children}</div></section> }
+function Section({ icon, title, description, children }: { icon: ReactNode; title: string; description: string; children: ReactNode }) { return <section className="card settings-integration-card"><div className="settings-section-head"><div>{icon}</div><span><h2>{title}</h2><p>{description}</p></span></div>{children}</section> }
 function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block"><span className="field-label">{label}</span>{children}</label> }
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) { return <label className="settings-toggle-row"><span>{label}</span><input className="setting-switch" type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} /></label> }
-function TimedToggle({ label, checked, time, onChange, onTime }: { label: string; checked: boolean; time: string; onChange: (value: boolean) => void; onTime: (value: string) => void }) { return <div className="timed-toggle-row"><label className="settings-toggle-row"><span>{label}</span><input className="setting-switch" type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} /></label><input className="field settings-time" aria-label={`${label} — giờ`} type="time" disabled={!checked} value={time.slice(0, 5)} onChange={(event) => onTime(event.target.value)} /></div> }
-function Alert({ children, danger = false }: { children: ReactNode; danger?: boolean }) { return <div className={`mb-4 rounded-lg border px-4 py-3 text-sm ${danger ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>{children}</div> }
-function SecurityNote() { return <div className="mt-5 flex gap-2 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-800"><LockKeyhole size={16} className="mt-0.5 shrink-0" /><span>API keys được lưu trên PostgreSQL của ứng dụng; không đưa chúng vào mã nguồn hoặc APK.</span></div> }
+function Alert({ children, danger = false }: { children: ReactNode; danger?: boolean }) { return <div className={`notice ${danger ? 'notice-error' : 'notice-success'}`}>{children}</div> }
+function SecurityNote() { return <div className="security-note"><LockKeyhole size={16} /><span>Khóa được lưu ở backend PostgreSQL và luôn bị che khi trả về ứng dụng.</span></div> }

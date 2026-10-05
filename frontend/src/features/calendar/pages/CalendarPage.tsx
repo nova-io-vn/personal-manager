@@ -133,11 +133,7 @@ export function CalendarPage() {
 
   return (
     <div className="page-content">
-      <div className="mb-6">
-        <p className="text-sm font-semibold text-blue-600">Tuần làm việc của bạn</p>
-        <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-800">Lịch trình</h2>
-        <p className="mt-1 text-sm text-slate-500">Lên kế hoạch từ thứ Hai đến Chủ nhật, theo từng khung giờ.</p>
-      </div>
+      <h2 className="sr-only">Lịch trình</h2>
       <CalendarToolbar
         label={label}
         onPrevious={() => setWeek((value) => addWeeks(value, -1))}

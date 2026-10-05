@@ -1,6 +1,6 @@
 # Personal Manager 0.1.0
 
-Local-first personal management app for Windows. The desktop installer bundles the React UI, a loopback-only FastAPI service, and SQLite. Personal data is kept on the computer; Gemini and Telegram are optional online integrations.
+Personal management app for Windows and Android tablets. Both clients use the shared FastAPI API and PostgreSQL database so changes are visible on both devices. Gemini and Telegram are optional integrations.
 
 ## Development
 
@@ -48,7 +48,7 @@ Use Settings → Data. A backup is a ZIP containing an SQLite Online Backup snap
 
 ## Gemini and Telegram
 
-Both are optional and require internet plus user-provided credentials. Configure them in Settings. Gemini receives only request-relevant structured summaries, and journal text is included only when relevant to the question; the model cannot write to application data. Telegram sends notification messages. Keys are masked in API/UI responses and are not logged, but they are stored in local SQLite without encryption. Never share the database or backup casually.
+Both require internet and user-provided credentials. Configure them in Settings. Gemini receives request-relevant structured summaries and cannot write application data. Telegram can send notifications; after `PUBLIC_BASE_URL` is configured on the backend, use **Bật tương tác** to register the webhook. Send `/tasks` to receive completion buttons, or a message such as `Đã ăn mất 50 nghìn` and confirm before Finance records it. Keys are masked in API/UI responses and are not logged, but remain stored in PostgreSQL without application-level encryption.
 
 ## Troubleshooting
 
@@ -79,11 +79,11 @@ $env:JAVA_HOME = 'C:\Program Files\Java\jdk-21'
 .\gradlew.bat assembleDebug
 ```
 
-The generated APK is `frontend\android\app\build\outputs\apk\debug\app-debug.apk`. Tablet data is stored in the Android app's private SQLite database and is separate from Windows data. Uninstalling the app may remove that data. There is no cloud sync yet. Gemini, Telegram, background notification scheduling, and backup/restore are unavailable in this offline Android build; do not enter integration credentials there.
+The generated APK is `frontend\android\app\build\outputs\apk\debug\app-debug.apk`. It uses the same shared API/PostgreSQL data as Desktop and therefore requires an internet connection.
 
 ## CI and release pipeline
 
-`.github/workflows/ci.yml` runs backend tests, frontend lint/build, and Playwright on pushes/PRs to `main`/`develop`. `.github/workflows/release.yml` runs only for version tags such as `v0.2.0`; Android offline storage now exists, but cloud sync/device authorization do not. GitHub Release publication remains gated by the repository variable `MOBILE_RELEASE_READY=true` until Android backup and release-signing are configured and the full mobile flows are validated.
+`.github/workflows/ci.yml` validates pushes/PRs. `.github/workflows/release.yml` runs only for version tags such as `v0.2.0`, builds the Windows installer and signed Android APK, then publishes them to GitHub Releases. A normal push does not update installed apps; create a version tag after CI passes.
 
 Configure these GitHub Actions secrets for a stable Android signing identity: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`. Never replace the signing keystore after publishing an APK if users need in-place updates. A sync server/domain has not yet been supplied; no cloud data is being sent anywhere.
 

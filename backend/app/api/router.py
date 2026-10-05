@@ -11,6 +11,8 @@ from app.api.ai import router as ai_router
 from app.api.tasks import router as tasks_router
 from app.api.debts import router as debts_router
 from app.api.cloud import router as auth_router, sync_router
+from app.api.belongings import router as belongings_router
+from app.api.telegram import router as telegram_router
 
 router = APIRouter(prefix="/api")
 router.include_router(finance_router)
@@ -23,6 +25,8 @@ router.include_router(data_router)
 router.include_router(ai_router)
 router.include_router(tasks_router)
 router.include_router(debts_router)
+router.include_router(belongings_router)
+router.include_router(telegram_router)
 router.include_router(auth_router)
 router.include_router(sync_router)
 

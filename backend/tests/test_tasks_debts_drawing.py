@@ -21,3 +21,19 @@ def test_journal_drawing_round_trip(client):
     assert response.status_code == 200
     assert response.json()['drawing_data'] == 'data:image/png;base64,abc'
     assert client.get('/api/journals/2026-10-05').json()['drawing_data'] == 'data:image/png;base64,abc'
+
+
+def test_personal_item_crud(client):
+    created = client.post('/api/belongings', json={
+        'name': 'Laptop', 'category': 'Điện tử', 'condition': 'GOOD',
+        'purchase_price': '25000000', 'warranty_until': '2028-10-06',
+    })
+    assert created.status_code == 201
+    item_id = created.json()['id']
+    assert created.json()['purchase_price'] == '25000000.00'
+
+    updated = client.patch(f'/api/belongings/{item_id}', json={'condition': 'NEEDS_SERVICE'})
+    assert updated.status_code == 200
+    assert updated.json()['condition'] == 'NEEDS_SERVICE'
+    assert len(client.get('/api/belongings', params={'category': 'Điện tử'}).json()) == 1
+    assert client.delete(f'/api/belongings/{item_id}').status_code == 204

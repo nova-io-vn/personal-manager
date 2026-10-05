@@ -20,6 +20,7 @@ frontend/.playwright-userdata*/
 **/*.py[cod]
 **/.pytest_cache/
 **/.pytest-tmp/
+**/.pytest-run*/
 backend/build/
 backend/dist/
 backend/release-smoke-data/
@@ -39,4 +40,5 @@ Thumbs.db
 **/.env.production.local
 *.jks
 *.keystore
+*.apk
 node_modules/

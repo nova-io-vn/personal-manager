@@ -24,7 +24,7 @@ DEFAULT_SETTINGS: dict[str, str] = {
     "telegram_chat_id": "",
     "gemini_enabled": "false",
     "gemini_api_key": "",
-    "gemini_model": "gemini-2.5-flash",
+    "gemini_model": "gemini-3.5-flash",
 }
 TOKEN_MASK = "••••••••"
 

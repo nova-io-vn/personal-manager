@@ -8,6 +8,9 @@ from app.core.time import local_day_utc_bounds, utc_now_naive, utc_to_local
 from app.models.calendar import Schedule
 from app.models.finance import Transaction, TransactionCategory, TransactionType
 from app.models.journal import JournalEntry
+from app.models.tasks import Task
+from app.models.debt import Debt
+from app.models.belonging import PersonalItem
 from app.services.health import health_summary
 from app.services.recurrence import expand_schedule_range
 
@@ -27,6 +30,9 @@ class ContextBuilder:
             "health": ("sức khỏe", "ngủ", "nước", "bước", "vận động", "health", "habit", "thói quen"),
             "nutrition": ("dinh dưỡng", "calo", "protein", "carb", "chất béo", "ăn", "nutrition"),
             "journal": ("nhật ký", "tâm trạng", "cảm xúc", "journal", "mood"),
+            "tasks": ("việc cần làm", "nhiệm vụ", "todo", "task", "chưa làm"),
+            "debts": ("nợ", "vay", "mượn", "debt"),
+            "belongings": ("đồ dùng", "tài sản", "xe máy", "máy tính", "quần áo", "belonging"),
         }
         for domain, terms in keywords.items():
             if any(term in text for term in terms):
@@ -49,6 +55,12 @@ class ContextBuilder:
         if "journal" in domains:
             include_content = any(term in text for term in keywords["journal"])
             context["journal"] = self._journal(start, end, include_content)
+        if "tasks" in domains:
+            context["tasks"] = self._tasks()
+        if "debts" in domains:
+            context["debts"] = self._debts()
+        if "belongings" in domains:
+            context["belongings"] = self._belongings()
         return context, sorted(domains)
 
     @staticmethod
@@ -111,3 +123,15 @@ class ContextBuilder:
                 item["content"] = entry.content[:2000]
             items.append(item)
         return {"entry_count": len(entries), "entries": items}
+
+    def _tasks(self) -> dict:
+        tasks = list(self.db.scalars(select(Task).where(Task.completed.is_(False)).order_by(Task.due_date.asc().nulls_last()).limit(30)).all())
+        return {"open_count": len(tasks), "items": [{"title": item.title, "due_date": item.due_date.isoformat() if item.due_date else None, "note": item.note} for item in tasks]}
+
+    def _debts(self) -> dict:
+        debts = list(self.db.scalars(select(Debt).order_by(Debt.due_date.asc().nulls_last()).limit(30)).all())
+        return {"items": [{"person": item.person, "direction": item.direction.value if hasattr(item.direction, "value") else str(item.direction), "amount": str(item.amount), "paid_amount": str(item.paid_amount), "due_date": item.due_date.isoformat() if item.due_date else None} for item in debts]}
+
+    def _belongings(self) -> dict:
+        items = list(self.db.scalars(select(PersonalItem).order_by(PersonalItem.category, PersonalItem.name).limit(50)).all())
+        return {"item_count": len(items), "items": [{"name": item.name, "category": item.category, "condition": item.condition, "warranty_until": item.warranty_until.isoformat() if item.warranty_until else None, "note": item.note} for item in items]}

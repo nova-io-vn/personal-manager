@@ -5,6 +5,7 @@ export const settingsApi = {
   get: () => api.get<AppSettings>('/settings').then((r) => r.data),
   update: (payload: Partial<AppSettings> & { telegram_bot_token?: string | null; gemini_api_key?: string | null }) => api.patch<AppSettings>('/settings', payload).then((r) => r.data),
   testTelegram: () => api.post<{ success: boolean; message: string }>('/settings/telegram/test').then((r) => r.data),
+  registerTelegramWebhook: () => api.post<{ success: boolean; message: string }>('/telegram/webhook/register').then((r) => r.data),
   testGemini: () => api.post<{ success: boolean; message: string }>('/settings/gemini/test').then((r) => r.data),
 }
 

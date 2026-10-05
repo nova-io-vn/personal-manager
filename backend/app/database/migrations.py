@@ -7,9 +7,11 @@ from sqlalchemy import Engine, inspect
 from app.database.base import Base
 
 
-ALEMBIC_REVISION = "0004_cloud_auth_sync"
+ALEMBIC_REVISION = "0005_personal_items"
 PRE_OCCURRENCE_TABLE = "schedule_occurrence_states"
-OPTIONAL_NEW_TABLES = {"tasks", "debts"}
+OPTIONAL_NEW_TABLES = {
+    "tasks", "debts", "cloud_users", "cloud_devices", "sync_changes", "personal_items",
+}
 OPTIONAL_NEW_COLUMNS = {("journal_entries", "drawing_data")}
 
 
@@ -38,6 +40,8 @@ def verify_legacy_schema(engine: Engine, *, allow_pre_occurrence_schema: bool = 
         )
     for table_name, table in Base.metadata.tables.items():
         if allow_pre_occurrence_schema and table_name == PRE_OCCURRENCE_TABLE:
+            continue
+        if table_name in OPTIONAL_NEW_TABLES and table_name not in existing:
             continue
         columns = {column["name"] for column in inspector.get_columns(table_name)}
         missing_columns = {
