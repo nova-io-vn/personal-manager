@@ -33,3 +33,6 @@ desktop/dist/
 .vscode/
 Thumbs.db
 .DS_Store
+.neon
+.env.local
+node_modules/
