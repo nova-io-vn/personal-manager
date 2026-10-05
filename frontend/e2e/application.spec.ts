@@ -27,13 +27,19 @@ test('finance account and expense persist with authoritative balance', async ({ 
   await page.locator('#account-name').fill(`E2E Cash ${suffix}`)
   await page.locator('#account-type').selectOption('CASH')
   await page.locator('#account-balance').fill('1000')
-  await page.getByRole('button', { name: /Lưu tài khoản/i }).click()
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes('/api/accounts') && response.request().method() === 'POST'),
+    page.getByRole('button', { name: /Lưu tài khoản/i }).click(),
+  ])
   await expect(page.getByText(`E2E Cash ${suffix}`)).toBeVisible()
   await page.getByRole('button', { name: /Thêm giao dịch/i }).click()
   await page.locator('#transaction-type').selectOption('EXPENSE')
   await page.locator('#transaction-amount').fill('125')
   await page.locator('#transaction-description').fill('E2E lunch')
-  await page.getByRole('button', { name: /Lưu giao dịch/i }).click()
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes('/api/transactions') && response.request().method() === 'POST'),
+    page.getByRole('button', { name: /Lưu giao dịch/i }).click(),
+  ])
   const accounts = await request.get('http://127.0.0.1:18766/api/accounts').then((response) => response.json()) as Array<{ name: string; current_balance: string }>
   expect(accounts.find((account) => account.name === `E2E Cash ${suffix}`)?.current_balance).toBe('875.00')
 })
@@ -87,10 +93,16 @@ test('health, nutrition and journal forms persist through backend', async ({ pag
   await page.getByRole('button', { name: /Thực phẩm/i }).click()
   await page.locator('#food-name').fill('E2E oats')
   await page.locator('#food-calories').fill('150')
-  await page.getByRole('button', { name: /^Lưu$/i }).click()
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes('/api/foods') && response.request().method() === 'POST'),
+    page.getByRole('button', { name: /^Lưu$/i }).click(),
+  ])
   await page.getByRole('button', { name: /Ghi bữa ăn/i }).click()
   await page.locator('#log-quantity').fill('100')
-  await page.getByRole('button', { name: /^Lưu$/i }).click()
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes('/api/food-logs') && response.request().method() === 'POST'),
+    page.getByRole('button', { name: /^Lưu$/i }).click(),
+  ])
   const nutrition = await request.get('http://127.0.0.1:18766/api/nutrition/summary').then((response) => response.json()) as { calories: string }
   expect(Number(nutrition.calories)).toBeGreaterThanOrEqual(150)
   await page.getByRole('link', { name: /Nhật ký/i }).click()
