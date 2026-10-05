@@ -19,12 +19,14 @@ from app.repositories.settings import seed_settings
 async def lifespan(app: FastAPI):
     settings = get_settings()
     is_vercel = os.getenv("VERCEL") == "1"
+    skip_startup_migrations = os.getenv("PM_SKIP_STARTUP_MIGRATIONS") == "1"
     settings.data_dir.mkdir(parents=True, exist_ok=True)
-    ensure_database_schema(engine, settings.database_url)
+    if not skip_startup_migrations and not is_vercel:
+        ensure_database_schema(engine, settings.database_url)
     # Cloud migrations are applied by the release/deployment step. Running
     # them during every Vercel cold start adds latency and can exceed the
     # serverless function timeout.
-    if not is_vercel and settings.cloud_database_url.strip() != settings.database_url.strip():
+    if not skip_startup_migrations and not is_vercel and settings.cloud_database_url.strip() != settings.database_url.strip():
         ensure_cloud_schema()
     with SessionLocal() as db:
         seed_categories(db)
