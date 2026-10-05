@@ -43,9 +43,23 @@ jobs:
       - name: Install Playwright Chromium
         working-directory: frontend
         run: npx playwright install chromium
-      - name: Build, test, and package Windows installer
-        shell: pwsh
-        run: .\scripts\build-release.ps1
+      - name: Backend tests
+        working-directory: backend
+        run: .\.venv\Scripts\python.exe -m pytest -q
+      - name: Frontend lint
+        working-directory: frontend
+        run: npm run lint
+      - name: Frontend production build
+        working-directory: frontend
+        env:
+          VITE_APP_VERSION: ${{ steps.version.outputs.version }}
+        run: npm run build
+      - name: Playwright end-to-end tests
+        working-directory: frontend
+        run: npm run test:e2e
+      - name: Build Windows installer
+        working-directory: desktop
+        run: npm run dist
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
