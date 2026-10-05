@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import router
 from app.config import get_settings
 from app.database.database import SessionLocal, engine
-from app.database.cloud import ensure_cloud_schema
 from app.database.migrations import ensure_database_schema
 from app.core.scheduler import create_scheduler
 from app.models import calendar, debt, finance, health, journal, notification, tasks  # noqa: F401 - registers all models with Base
@@ -26,8 +25,6 @@ async def lifespan(app: FastAPI):
     # Cloud migrations are applied by the release/deployment step. Running
     # them during every Vercel cold start adds latency and can exceed the
     # serverless function timeout.
-    if not skip_startup_migrations and not is_vercel and settings.cloud_database_url.strip() != settings.database_url.strip():
-        ensure_cloud_schema()
     with SessionLocal() as db:
         seed_categories(db)
         seed_schedule_categories(db)

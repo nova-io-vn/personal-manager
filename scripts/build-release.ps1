@@ -12,7 +12,6 @@ try {
     $python = Join-Path $repo 'backend\.venv\Scripts\python.exe'
     if (-not (Test-Path $python)) { throw 'Create backend\.venv and install backend\requirements.txt first.' }
     Invoke-Checked 'Backend tests' { & $python -m pytest }
-    Invoke-Checked 'Backend executable' { & $python -m PyInstaller --clean --noconfirm personal-manager-backend.spec }
 } finally { Pop-Location }
 
 Push-Location (Join-Path $repo 'frontend')

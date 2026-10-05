@@ -9,6 +9,7 @@ let mainWindow = null
 let backendProcess = null
 let apiBaseUrl = ''
 let quitting = false
+const sharedApiBaseUrl = process.env.PM_API_BASE_URL || 'https://personal.nova.io.vn/api'
 
 autoUpdater.autoDownload = false
 autoUpdater.autoInstallOnAppQuit = true
@@ -41,7 +42,7 @@ function backendExecutable() {
 async function waitForBackend(healthUrl, timeoutMs = 30000) {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
-    if (backendProcess?.exitCode !== null) throw new Error('Dịch vụ backend đã dừng trong khi khởi động.')
+    if (backendProcess && backendProcess.exitCode !== null) throw new Error('Dịch vụ backend đã dừng trong khi khởi động.')
     try { const response = await fetch(healthUrl); if (response.ok) return } catch { /* Retry while process initializes. */ }
     await new Promise((resolve) => setTimeout(resolve, 250))
   }
@@ -54,6 +55,11 @@ function stopBackend() {
 }
 
 async function startBackend() {
+  if (process.env.PM_LOCAL_BACKEND !== '1') {
+    apiBaseUrl = sharedApiBaseUrl
+    await waitForBackend(`${apiBaseUrl}/health`)
+    return
+  }
   const port = await availablePort()
   apiBaseUrl = `http://127.0.0.1:${port}/api`
   backendProcess = spawn(backendExecutable(), ['--port', String(port)], {

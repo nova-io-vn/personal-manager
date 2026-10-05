@@ -34,10 +34,6 @@
         ],
         "extraResources": [
             {
-                "from": "../backend/dist/personal-manager-backend",
-                "to": "backend"
-            },
-            {
                 "from": "../frontend/dist",
                 "to": "frontend/dist"
             }

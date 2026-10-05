@@ -23,7 +23,7 @@ npm run test:e2e
 
 The frontend expects the FastAPI backend at http://127.0.0.1:8000/api by default. Playwright E2E starts local servers and a unique temporary database, then terminates the server trees; it never targets `backend/data/personal.db`.
 
-Production builds use relative asset paths so Electron can load the UI from `file://`. Electron provides the dynamically selected loopback API URL through its isolated preload; browser development uses `VITE_API_BASE_URL`.
+Production builds use relative asset paths so Electron can load the UI from `file://`. The packaged Desktop app and Android APK use the shared FastAPI URL `https://personal.nova.io.vn/api` by default. Override it with `PM_API_BASE_URL` for a controlled environment; browser development uses `VITE_API_BASE_URL`.
 
 Currently, two official plugins are available:
 

@@ -22,10 +22,9 @@ def migrate() -> None:
 def main() -> None:
     migrate()
     os.environ["PM_SKIP_STARTUP_MIGRATIONS"] = "1"
-    # The migration uses the direct URL, while application traffic uses the
-    # pooled cloud URL. This also prevents a stale local DATABASE_URL from
-    # opening an empty SQLite database during FastAPI startup.
-    os.environ["PM_USE_CLOUD_DATABASE"] = "1"
+    # Render application traffic uses DATABASE_URL (the pooled Neon URL).
+    # Alembic above uses the separate direct URL only for migrations.
+    os.environ["PM_PRODUCTION"] = "1"
     uvicorn.run(
         "api.index:app",
         host="0.0.0.0",

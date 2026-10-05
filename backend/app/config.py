@@ -19,11 +19,11 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def resolve_storage(self):
-        # Render runs the API against the cloud PostgreSQL database. Keep the
-        # local SQLite default for desktop/dev, but allow the Render entrypoint
-        # to select the already-configured pooled cloud URL explicitly.
-        if os.getenv("PM_USE_CLOUD_DATABASE") == "1" and self.cloud_database_url.strip():
-            self.database_url = self.cloud_database_url.strip()
+        if os.getenv("PM_PRODUCTION") == "1":
+            if not self.database_url.strip():
+                raise ValueError("DATABASE_URL is required in production")
+            if not self.database_url.startswith(("postgresql://", "postgresql+psycopg://")):
+                raise ValueError("Production DATABASE_URL must be a PostgreSQL URL")
         # Vercel functions have an ephemeral writable /tmp directory. A relative
         # SQLite path points into the read-only deployment bundle there.
         if os.getenv("VERCEL") == "1" and self.personal_manager_data_dir is None and self.database_url.startswith("sqlite"):

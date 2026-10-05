@@ -27,7 +27,7 @@ Finance, Calendar, Health, Nutrition, Journal, Settings, and Notifications are l
 
 ## Cloud authentication and sync
 
-Cloud sync is an optional layer over the local SQLite database. Set `CLOUD_DATABASE_URL` to the Neon pooled connection string and `JWT_SECRET_KEY` to a private random value of at least 32 bytes. Run Alembic with the Neon direct/unpooled connection when applying migrations. The local application remains usable without these variables.
+The Desktop application and Android APK use the same FastAPI service and PostgreSQL database. Authentication is not required for this single-owner deployment. `CLOUD_DATABASE_URL` and `JWT_SECRET_KEY` are not needed by the normal application flow.
 
 Available endpoints are `/api/auth/register`, `/api/auth/login`, `/api/auth/me`, `/api/sync/devices`, `/api/sync/push`, and `/api/sync/pull`. The current sync API stores authenticated changes with idempotency protection; a client adapter must apply pulled changes to its local store.
 
@@ -43,15 +43,12 @@ Start Command: python render_start.py
 Set these variables in Render:
 
 ```text
-DATABASE_URL=sqlite:///./data/personal.db
-CLOUD_DATABASE_URL=<Neon pooled PostgreSQL URL>
+DATABASE_URL=<Neon pooled PostgreSQL URL>
 ALEMBIC_DATABASE_URL=<Neon direct/unpooled PostgreSQL URL>
-JWT_SECRET_KEY=<random secret, at least 32 bytes>
 CORS_ORIGINS=https://your-frontend-domain,capacitor://localhost,http://localhost
 ```
 
 `render_start.py` migrates PostgreSQL once using the direct URL, then starts
-FastAPI with the pooled cloud URL. This is intentional: the SQLite value is
-kept as a safe local fallback, while Render application traffic and startup
-seeding use the same PostgreSQL schema. Do not use the pooled URL for Alembic
-migrations.
+FastAPI with the pooled `DATABASE_URL`. Production rejects SQLite URLs, so a
+misconfigured deployment cannot silently create an empty local database. Do
+not use the pooled URL for Alembic migrations.

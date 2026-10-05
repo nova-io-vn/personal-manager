@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 const argument = process.argv.find((value) => value.startsWith('--pm-api-base-url='))
-const apiBaseUrl = argument ? argument.slice('--pm-api-base-url='.length) : 'http://127.0.0.1:8000/api'
+const apiBaseUrl = argument ? argument.slice('--pm-api-base-url='.length) : (process.env.PM_API_BASE_URL || 'https://personal.nova.io.vn/api')
 
 contextBridge.exposeInMainWorld('personalManager', Object.freeze({
   apiBaseUrl,
