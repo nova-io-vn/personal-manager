@@ -1,4 +1,5 @@
 from functools import lru_cache
+import os
 from pathlib import Path
 
 from pydantic import model_validator
@@ -18,6 +19,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def resolve_storage(self):
+        # Vercel functions have an ephemeral writable /tmp directory. A relative
+        # SQLite path points into the read-only deployment bundle there.
+        if os.getenv("VERCEL") == "1" and self.personal_manager_data_dir is None and self.database_url.startswith("sqlite"):
+            self.database_url = "sqlite:////tmp/personal-manager.db"
         if self.personal_manager_data_dir is not None:
             data_dir = self.personal_manager_data_dir.expanduser().resolve()
             self.personal_manager_data_dir = data_dir
