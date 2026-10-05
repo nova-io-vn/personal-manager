@@ -5,7 +5,7 @@ import { getApiError } from '../../../services/api'
 import { journalApi } from '../services/journalApi'
 import type { JournalEntry, JournalTag, Mood } from '../types/journal'
 import { moodOptions } from '../types/journal'
-import { DrawingCanvas } from '../components/DrawingCanvas'
+import { DrawingCanvasWithJournalHeading as DrawingCanvas } from '../components/DrawingCanvasWithJournalHeading'
 
 export function JournalPage() {
   const today = format(new Date(), 'yyyy-MM-dd')
