@@ -139,7 +139,7 @@ jobs:
           if (-not (Test-Path -LiteralPath $apk)) {
             throw "Expected release APK was not produced at $apk."
           }
-          Copy-Item -LiteralPath $apk -Destination "..\..\Personal-Manager-$version.apk"
+          Copy-Item -LiteralPath $apk -Destination "..\Personal-Manager-$version.apk"
       - uses: actions/upload-artifact@v4
         with:
           name: android-apk
