@@ -19,6 +19,11 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def resolve_storage(self):
+        # Render deployments may temporarily have only the migration URL
+        # configured. Use it as a safe fallback so the service can boot; the
+        # preferred setup still defines DATABASE_URL with Neon's pooled URL.
+        if not self.database_url.strip():
+            self.database_url = os.getenv("ALEMBIC_DATABASE_URL", "").strip()
         if os.getenv("PM_PRODUCTION") == "1":
             if not self.database_url.strip():
                 raise ValueError("DATABASE_URL is required in production")

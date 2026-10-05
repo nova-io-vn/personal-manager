@@ -49,6 +49,8 @@ CORS_ORIGINS=https://your-frontend-domain,capacitor://localhost,http://localhost
 ```
 
 `render_start.py` migrates PostgreSQL once using the direct URL, then starts
-FastAPI with the pooled `DATABASE_URL`. Production rejects SQLite URLs, so a
-misconfigured deployment cannot silently create an empty local database. Do
-not use the pooled URL for Alembic migrations.
+FastAPI with `DATABASE_URL`. If `DATABASE_URL` is temporarily missing, the
+application falls back to `ALEMBIC_DATABASE_URL`; defining the pooled URL is
+still preferred. Production rejects SQLite URLs, so a misconfigured
+deployment cannot silently create an empty local database. Do not use the
+pooled URL for Alembic migrations.
