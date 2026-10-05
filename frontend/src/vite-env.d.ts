@@ -2,6 +2,7 @@
 
 interface PersonalManagerDesktopApi {
   apiBaseUrl: string
+  cloudApiBaseUrl?: string
   getVersion: () => Promise<string>
   checkForUpdates: () => Promise<{ supported: boolean; available?: boolean; version?: string; error?: string }>
   downloadUpdate: () => Promise<{ success: boolean; message?: string }>
