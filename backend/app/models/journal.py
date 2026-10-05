@@ -42,6 +42,7 @@ class JournalEntry(Base):
     entry_date: Mapped[date] = mapped_column(Date, unique=True, index=True)
     mood: Mapped[Mood] = mapped_column(String(20))
     content: Mapped[str] = mapped_column(Text)
+    drawing_data: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 

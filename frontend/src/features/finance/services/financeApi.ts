@@ -1,5 +1,6 @@
 import { api } from '../../../services/api'
 import type { Account, AccountType, Budget, Transaction, TransactionCategory, TransactionFilters, TransactionType } from '../types/finance'
+import type { Debt } from '../types/debt'
 
 export const financeApi = {
   getAccounts: () => api.get<Account[]>('/accounts').then((r) => r.data),
@@ -15,6 +16,10 @@ export const financeApi = {
   createBudget: (payload: { category_id: number; amount: string; period: string; start_date: string; end_date: string }) => api.post<Budget>('/budgets', payload).then((r) => r.data),
   updateBudget: (id: number, payload: Record<string, unknown>) => api.patch<Budget>(`/budgets/${id}`, payload).then((r) => r.data),
   deleteBudget: (id: number) => api.delete(`/budgets/${id}`),
+  getDebts: () => api.get<Debt[]>('/debts').then((r) => r.data),
+  createDebt: (payload: Omit<Debt, 'id' | 'created_at' | 'updated_at'>) => api.post<Debt>('/debts', payload).then((r) => r.data),
+  updateDebt: (id: number, payload: Partial<Omit<Debt, 'id' | 'created_at' | 'updated_at'>>) => api.patch<Debt>(`/debts/${id}`, payload).then((r) => r.data),
+  deleteDebt: (id: number) => api.delete(`/debts/${id}`),
 }
 
 export function transactionPayload(type: TransactionType, values: { account_id: number; related_account_id?: number; category_id?: number; amount: string; transaction_date: string; description?: string }) {

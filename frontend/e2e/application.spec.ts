@@ -40,6 +40,7 @@ test('finance account and expense persist with authoritative balance', async ({ 
 
 test('calendar create recurrence displays virtual week occurrence', async ({ page, request }) => {
   const start = new Date(); start.setDate(start.getDate() - start.getDay() + 1); start.setHours(11, 0, 0, 0)
+  await page.clock.install({ time: new Date(start.getFullYear(), start.getMonth(), start.getDate(), 11, 30) })
   const end = new Date(start); end.setHours(12)
   const startValue = (date: Date) => { const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000); return local.toISOString().slice(0, 16) }
   await page.goto('/calendar')
@@ -54,6 +55,20 @@ test('calendar create recurrence displays virtual week occurrence', async ({ pag
   const params = new URLSearchParams({ start: rangeStart.toISOString(), end: rangeEnd.toISOString() })
   const result = await request.get(`http://127.0.0.1:18766/api/schedules?${params}`).then((response) => response.json()) as Array<{ title: string }>
   expect(result.some((event) => event.title === 'E2E weekly review')).toBeTruthy()
+  await expect(page.getByText('Đang diễn ra', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Đánh dấu hoàn thành: E2E weekly review' }).click()
+  await expect(page.getByRole('button', { name: 'Bỏ hoàn thành: E2E weekly review' })).toBeVisible()
+  const refreshed = await request.get(`http://127.0.0.1:18766/api/schedules?${params}`).then((response) => response.json()) as Array<{ title: string; completed: boolean }>
+  expect(refreshed.find((event) => event.title === 'E2E weekly review')?.completed).toBe(true)
+})
+
+test('calendar adapts to a portrait tablet without page-level horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 800, height: 1280 })
+  await page.goto('/calendar')
+  await expect(page.getByRole('heading', { level: 2, name: /Lịch trình/i })).toBeVisible()
+  await expect(page.locator('.calendar-scroll')).toBeVisible()
+  const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+  expect(pageWidth).toBeLessThanOrEqual(800)
 })
 
 test('health, nutrition and journal forms persist through backend', async ({ page, request }) => {

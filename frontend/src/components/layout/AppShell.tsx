@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Activity, BookOpen, CalendarDays, CircleDollarSign, HeartPulse, LayoutDashboard, Plus, Settings, Sparkles, WalletCards, X } from 'lucide-react'
+import { Activity, BookOpen, CalendarDays, CheckSquare, CircleDollarSign, HeartPulse, LayoutDashboard, Plus, Settings, Sparkles, WalletCards, X } from 'lucide-react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { NotificationBell } from '../../features/settings/components/NotificationBell'
+import { DesktopUpdatePanel } from './DesktopUpdatePanel'
 
 const navigation = [
   { label: 'Tổng quan', to: '/', icon: LayoutDashboard },
@@ -10,6 +11,7 @@ const navigation = [
   { label: 'Sức khỏe', to: '/health', icon: HeartPulse },
   { label: 'Nhật ký', to: '/journal', icon: BookOpen },
   { label: 'Gemini', to: '/ai', icon: Sparkles },
+  { label: 'Việc cần làm', to: '/tasks', icon: CheckSquare },
 ]
 
 const quickActions = [
@@ -18,6 +20,7 @@ const quickActions = [
   { label: 'Cân nặng', detail: 'Ghi nhận số đo mới', to: '/health?quickAdd=measurement', icon: Activity },
   { label: 'Thực phẩm', detail: 'Mở sổ dinh dưỡng', to: '/health?quickAdd=food', icon: Plus },
   { label: 'Nhật ký', detail: 'Viết ghi chú hôm nay', to: '/journal?quickAdd=journal', icon: BookOpen },
+  { label: 'Việc cần làm', detail: 'Ghi nhanh việc chưa có lịch', to: '/tasks', icon: CheckSquare },
 ]
 
 export function AppShell() {
@@ -48,6 +51,6 @@ export function AppShell() {
       </div>
     </header>
     <div className="mobile-page-label">{pageTitle}</div>
-    <main className="app-main"><Outlet /></main>
+    <main className="app-main"><Outlet />{location.pathname === '/settings' && <div className="page-content"><DesktopUpdatePanel /></div>}</main>
   </div>
 }

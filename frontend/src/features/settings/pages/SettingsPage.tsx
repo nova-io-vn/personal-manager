@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { BellRing, Bot, Database, LoaderCircle, LockKeyhole, Send, Settings2 } from 'lucide-react'
-import { getApiError } from '../../../services/api'
+import { getApiError, isOfflineAndroid } from '../../../services/api'
 import { dataApi, settingsApi } from '../services/settingsApi'
 import type { AppSettings } from '../types/settings'
 
@@ -19,19 +19,22 @@ export function SettingsPage() {
 
   const save = () => run(async () => {
     if (!settings) return ''
+    if (isOfflineAndroid && (telegramTouched && telegramToken || geminiTouched && geminiKey)) {
+      throw new Error('Tablet offline chưa hỗ trợ lưu khóa Gemini hoặc Telegram.')
+    }
     const payload: Partial<AppSettings> & { telegram_bot_token?: string | null; gemini_api_key?: string | null } = {
       currency: settings.currency, default_reminder_minutes: settings.default_reminder_minutes,
-      notifications_enabled: settings.notifications_enabled, schedule_reminders_enabled: settings.schedule_reminders_enabled,
-      budget_warnings_enabled: settings.budget_warnings_enabled, journal_reminder_enabled: settings.journal_reminder_enabled,
-      journal_reminder_time: settings.journal_reminder_time, health_reminder_enabled: settings.health_reminder_enabled,
-      health_reminder_time: settings.health_reminder_time, daily_summary_enabled: settings.daily_summary_enabled,
+      notifications_enabled: isOfflineAndroid ? false : settings.notifications_enabled, schedule_reminders_enabled: isOfflineAndroid ? false : settings.schedule_reminders_enabled,
+      budget_warnings_enabled: isOfflineAndroid ? false : settings.budget_warnings_enabled, journal_reminder_enabled: isOfflineAndroid ? false : settings.journal_reminder_enabled,
+      journal_reminder_time: settings.journal_reminder_time, health_reminder_enabled: isOfflineAndroid ? false : settings.health_reminder_enabled,
+      health_reminder_time: settings.health_reminder_time, daily_summary_enabled: isOfflineAndroid ? false : settings.daily_summary_enabled,
       daily_summary_time: settings.daily_summary_time, telegram_enabled: settings.telegram_enabled,
-      telegram_chat_id: settings.telegram_chat_id, gemini_enabled: settings.gemini_enabled, gemini_model: settings.gemini_model,
+      telegram_chat_id: settings.telegram_chat_id, gemini_enabled: isOfflineAndroid ? false : settings.gemini_enabled, gemini_model: settings.gemini_model,
     }
     if (telegramTouched) payload.telegram_bot_token = telegramToken
     if (geminiTouched) payload.gemini_api_key = geminiKey
     setSettings(await settingsApi.update(payload)); setTelegramToken(''); setTelegramTouched(false); setGeminiKey(''); setGeminiTouched(false)
-    return 'Đã lưu cài đặt.'
+    return isOfflineAndroid ? 'Đã lưu cài đặt. Nhắc nền, Gemini và Telegram chưa khả dụng khi tablet chạy độc lập.' : 'Đã lưu cài đặt.'
   })
 
   const createBackup = () => run(async () => {

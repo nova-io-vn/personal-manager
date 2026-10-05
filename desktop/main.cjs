@@ -1,4 +1,5 @@
 const { app, BrowserWindow, dialog, ipcMain } = require('electron')
+const { autoUpdater } = require('electron-updater')
 const { spawn } = require('node:child_process')
 const fs = require('node:fs/promises')
 const net = require('node:net')
@@ -8,6 +9,17 @@ let mainWindow = null
 let backendProcess = null
 let apiBaseUrl = ''
 let quitting = false
+
+autoUpdater.autoDownload = false
+autoUpdater.autoInstallOnAppQuit = true
+
+function sendUpdateEvent(name, payload) {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(name, payload)
+}
+
+autoUpdater.on('update-available', (info) => sendUpdateEvent('app:update-available', { version: info.version }))
+autoUpdater.on('update-downloaded', (info) => sendUpdateEvent('app:update-downloaded', { version: info.version }))
+autoUpdater.on('download-progress', (progress) => sendUpdateEvent('app:update-progress', { percent: Math.round(progress.percent) }))
 
 const singleInstance = app.requestSingleInstanceLock()
 if (!singleInstance) app.quit()
@@ -94,6 +106,22 @@ ipcMain.handle('data:restore-backup', async () => {
     return { success: true, message: payload.message }
   } catch { return { success: false, message: 'Không thể khôi phục dữ liệu.' } }
 })
+
+ipcMain.handle('app:version', () => app.getVersion())
+ipcMain.handle('app:check-updates', async () => {
+  if (!app.isPackaged) return { supported: false }
+  try {
+    const result = await autoUpdater.checkForUpdates()
+    return { supported: true, available: Boolean(result?.isUpdateAvailable), version: result?.updateInfo.version ?? app.getVersion() }
+  } catch {
+    return { supported: true, available: false, error: 'Không thể kiểm tra cập nhật. Hãy thử lại sau.' }
+  }
+})
+ipcMain.handle('app:download-update', async () => {
+  try { await autoUpdater.downloadUpdate(); return { success: true } }
+  catch { return { success: false, message: 'Không thể tải bản cập nhật.' } }
+})
+ipcMain.handle('app:install-update', () => autoUpdater.quitAndInstall(false, true))
 
 if (singleInstance) app.whenReady().then(async () => {
   try { await startBackend(); createWindow() }

@@ -64,3 +64,33 @@ cd backend; .\.venv\Scripts\python.exe -m PyInstaller --clean --noconfirm person
 cd ..\frontend; npm.cmd run lint; npm.cmd run build
 cd ..\desktop; npm.cmd run dist
 ```
+
+## Android tablet (offline preview)
+
+The React UI is wrapped with Capacitor 8. On Android, its existing Finance, Calendar, Health/Nutrition and Journal service calls are handled by a device-local SQLite adapter; the tablet does not need the Windows FastAPI process. Build a debug APK with:
+
+```powershell
+cd frontend
+npm ci
+npm run build
+npx cap sync android
+cd android
+$env:JAVA_HOME = 'C:\Program Files\Java\jdk-21'
+.\gradlew.bat assembleDebug
+```
+
+The generated APK is `frontend\android\app\build\outputs\apk\debug\app-debug.apk`. Tablet data is stored in the Android app's private SQLite database and is separate from Windows data. Uninstalling the app may remove that data. There is no cloud sync yet. Gemini, Telegram, background notification scheduling, and backup/restore are unavailable in this offline Android build; do not enter integration credentials there.
+
+## CI and release pipeline
+
+`.github/workflows/ci.yml` runs backend tests, frontend lint/build, and Playwright on pushes/PRs to `main`/`develop`. `.github/workflows/release.yml` runs only for version tags such as `v0.2.0`; Android offline storage now exists, but cloud sync/device authorization do not. GitHub Release publication remains gated by the repository variable `MOBILE_RELEASE_READY=true` until Android backup and release-signing are configured and the full mobile flows are validated.
+
+Configure these GitHub Actions secrets for a stable Android signing identity: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`. Never replace the signing keystore after publishing an APK if users need in-place updates. A sync server/domain has not yet been supplied; no cloud data is being sent anywhere.
+
+Tagging is a release action (not a normal update):
+
+```powershell
+git push origin main
+git tag v0.2.0
+git push origin v0.2.0
+```

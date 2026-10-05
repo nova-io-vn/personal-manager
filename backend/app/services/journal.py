@@ -17,11 +17,12 @@ def upsert_entry(db: Session, entry_date: date, data) -> JournalEntry:
         raise JournalTagNotFoundError("Journal tag not found")
     entry = get_entry_by_date(db, entry_date)
     if entry is None:
-        entry = JournalEntry(entry_date=entry_date, mood=data.mood, content=data.content)
+        entry = JournalEntry(entry_date=entry_date, mood=data.mood, content=data.content, drawing_data=data.drawing_data)
         db.add(entry)
     else:
         entry.mood = data.mood
         entry.content = data.content
+        entry.drawing_data = data.drawing_data
     entry.tags = tags
     db.commit()
     db.refresh(entry)

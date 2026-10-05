@@ -7,7 +7,7 @@ from app.config import get_settings
 from app.database.database import SessionLocal, engine
 from app.database.migrations import ensure_database_schema
 from app.core.scheduler import create_scheduler
-from app.models import calendar, finance, health, journal, notification  # noqa: F401 - registers all models with Base
+from app.models import calendar, debt, finance, health, journal, notification, tasks  # noqa: F401 - registers all models with Base
 from app.repositories.finance import seed_categories
 from app.repositories.calendar import seed_schedule_categories
 from app.repositories.settings import seed_settings

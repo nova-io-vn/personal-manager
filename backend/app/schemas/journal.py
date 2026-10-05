@@ -27,6 +27,7 @@ class JournalUpsert(BaseModel):
     mood: Mood
     content: str = Field(max_length=20000)
     tag_ids: list[int] = Field(default_factory=list)
+    drawing_data: str | None = Field(default=None, max_length=2_000_000)
 
 
 class JournalRead(BaseModel):
@@ -35,6 +36,7 @@ class JournalRead(BaseModel):
     entry_date: date
     mood: Mood
     content: str
+    drawing_data: str | None
     tags: list[JournalTagRead]
     created_at: datetime
     updated_at: datetime

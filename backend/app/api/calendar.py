@@ -8,8 +8,14 @@ from app.database.database import get_db
 from app.core.time import to_utc_naive
 from app.models.calendar import Schedule, ScheduleCategory
 from app.repositories.calendar import list_schedules
-from app.schemas.calendar import ScheduleCategoryCreate, ScheduleCategoryRead, ScheduleCreate, ScheduleRead, ScheduleUpdate
+from app.schemas.calendar import (
+    ScheduleCategoryCreate, ScheduleCategoryRead, ScheduleCreate, ScheduleOccurrenceCompletion,
+    ScheduleRead, ScheduleUpdate,
+)
 from app.services.recurrence import expand_schedule_range
+from app.services.schedule_occurrences import (
+    is_valid_occurrence, occurrence_completion, set_occurrence_completion,
+)
 
 router = APIRouter(tags=["calendar"])
 
@@ -70,11 +76,34 @@ def get_schedules(
         ScheduleRead.model_validate(occurrence.schedule).model_copy(update={
             "start_datetime": occurrence.start,
             "end_datetime": occurrence.end,
+            "completed": occurrence_completion(db, occurrence.schedule, occurrence.start),
             "series_start_datetime": occurrence.schedule.start_datetime,
             "is_recurring_occurrence": occurrence.start != to_utc_naive(occurrence.schedule.start_datetime),
         })
         for occurrence in expand_schedule_range(schedules, start, end)
     ]
+
+
+@router.patch("/schedules/{schedule_id}/occurrence-completion", response_model=ScheduleRead)
+def update_occurrence_completion(
+    schedule_id: int,
+    data: ScheduleOccurrenceCompletion,
+    db: Session = Depends(get_db),
+):
+    schedule = db.get(Schedule, schedule_id)
+    if schedule is None:
+        raise _not_found("Schedule not found")
+    if not is_valid_occurrence(schedule, data.occurrence_start):
+        raise HTTPException(status_code=422, detail="occurrence_start is not a valid schedule occurrence")
+    occurrence = set_occurrence_completion(db, schedule, data.occurrence_start, data.completed)
+    result = ScheduleRead.model_validate(schedule).model_copy(update={
+        "start_datetime": occurrence.occurrence_start,
+        "end_datetime": occurrence.occurrence_start + (schedule.end_datetime - schedule.start_datetime),
+        "completed": occurrence.completed,
+        "series_start_datetime": schedule.start_datetime,
+            "is_recurring_occurrence": occurrence.occurrence_start != schedule.start_datetime.replace(tzinfo=None),
+    })
+    return result
 
 
 @router.post("/schedules", response_model=ScheduleRead, status_code=status.HTTP_201_CREATED)

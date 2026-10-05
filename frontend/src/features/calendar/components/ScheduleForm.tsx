@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import type { Schedule, ScheduleCategory, RepeatType } from '../types/calendar'
+import { parseApiDateTime } from '../../../utils/dateTime'
 
-function toLocalInput(value: string | undefined, fallback: Date) { const date = value ? new Date(value) : fallback; const pad = (n: number) => String(n).padStart(2, '0'); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}` }
+function toLocalInput(value: string | undefined, fallback: Date) { const date = value ? parseApiDateTime(value) : fallback; const pad = (n: number) => String(n).padStart(2, '0'); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}` }
 
 export function ScheduleForm({ categories, editing, initialDate, defaultReminderMinutes, onClose, onSubmit, onDelete, busy }: { categories: ScheduleCategory[]; editing: Schedule | null; initialDate: Date; defaultReminderMinutes: number; onClose: () => void; onSubmit: (payload: Record<string, unknown>, id?: number) => Promise<void>; onDelete: (item: Schedule) => Promise<void>; busy: boolean }) {
   const defaultStart = new Date(initialDate); defaultStart.setMinutes(0, 0, 0); const defaultEnd = new Date(defaultStart); defaultEnd.setHours(defaultEnd.getHours() + 1)

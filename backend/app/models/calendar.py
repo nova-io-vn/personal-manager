@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from enum import StrEnum
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -47,3 +47,25 @@ class Schedule(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
     category: Mapped[ScheduleCategory | None] = relationship(back_populates="schedules")
+
+    occurrence_states: Mapped[list["ScheduleOccurrenceState"]] = relationship(
+        back_populates="schedule", cascade="all, delete-orphan"
+    )
+
+
+class ScheduleOccurrenceState(Base):
+    """Completion override for one virtual occurrence of a repeating schedule."""
+
+    __tablename__ = "schedule_occurrence_states"
+    __table_args__ = (
+        UniqueConstraint("schedule_id", "occurrence_start", name="uq_schedule_occurrence_start"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.id", ondelete="CASCADE"), index=True)
+    occurrence_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    schedule: Mapped[Schedule] = relationship(back_populates="occurrence_states")

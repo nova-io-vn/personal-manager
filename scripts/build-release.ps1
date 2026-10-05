@@ -17,6 +17,8 @@ try {
 
 Push-Location (Join-Path $repo 'frontend')
 try {
+    $frontendPackage = Get-Content (Join-Path $repo 'frontend\package.json') -Raw | ConvertFrom-Json
+    $env:VITE_APP_VERSION = $frontendPackage.version
     Invoke-Checked 'Frontend lint' { npm.cmd run lint }
     Invoke-Checked 'Frontend production build' { npm.cmd run build }
     Invoke-Checked 'Playwright E2E' { npm.cmd run test:e2e }
@@ -27,4 +29,5 @@ try {
     Invoke-Checked 'Windows installer' { npm.cmd run dist }
 } finally { Pop-Location }
 
-Write-Host "`nRelease artifact: $repo\desktop\release\Personal-Manager-Setup-0.1.0.exe" -ForegroundColor Green
+$desktopPackage = Get-Content (Join-Path $repo 'desktop\package.json') -Raw | ConvertFrom-Json
+Write-Host "`nRelease artifact: $repo\desktop\release\Personal-Manager-Setup-$($desktopPackage.version).exe" -ForegroundColor Green

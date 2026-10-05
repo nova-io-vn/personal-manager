@@ -1,0 +1,122 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Set release version
+        id: version
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          "version=$version" >> $env:GITHUB_OUTPUT
+          npm.cmd version $version --no-git-tag-version --prefix frontend
+          npm.cmd version $version --no-git-tag-version --prefix desktop
+      - name: Install Python build dependencies
+        run: python -m pip install -r backend/requirements.txt pyinstaller
+      - name: Install frontend and desktop dependencies
+        shell: pwsh
+        run: |
+          npm.cmd ci --prefix frontend
+          npm.cmd install --prefix desktop
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: npx playwright install chromium
+      - name: Build, test, and package Windows installer
+        shell: pwsh
+        run: .\scripts\build-release.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            desktop/release/Personal-Manager-Setup-${{ steps.version.outputs.version }}.exe
+            desktop/release/latest.yml
+            desktop/release/*.blockmap
+          if-no-files-found: error
+
+  android:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Read release version
+        id: version
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Install frontend dependencies and build web assets
+        working-directory: frontend
+        env:
+          VITE_APP_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          npm ci
+          npm run build
+          npx cap sync android
+      - name: Prepare Android release signing
+        shell: pwsh
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if ($env:ANDROID_KEYSTORE_BASE64) {
+            $path = Join-Path $PWD 'frontend\android\app\release.keystore'
+            [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
+            "ANDROID_KEYSTORE_PATH=$path" >> $env:GITHUB_ENV
+          }
+      - name: Build Android APK
+        shell: pwsh
+        working-directory: frontend/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          if ($env:ANDROID_KEYSTORE_PATH) {
+            .\gradlew.bat assembleRelease "-PpmVersionName=$version" "-PpmVersionCode=${{ github.run_number }}"
+            Copy-Item app\build\outputs\apk\release\app-release.apk "..\..\Personal-Manager-$version.apk"
+          } else {
+            .\gradlew.bat assembleDebug "-PpmVersionName=$version" "-PpmVersionCode=${{ github.run_number }}"
+            Copy-Item app\build\outputs\apk\debug\app-debug.apk "..\..\Personal-Manager-$version.apk"
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: frontend/Personal-Manager-${{ steps.version.outputs.version }}.apk
+          if-no-files-found: error
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [windows, android]
+    # Do not distribute the Android shell until the mobile-local repository/sync path is ready.
+    if: ${{ vars.MOBILE_RELEASE_READY == 'true' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/windows-installer/*
+            artifacts/android-apk/*
+          generate_release_notes: true

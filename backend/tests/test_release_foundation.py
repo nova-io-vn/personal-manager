@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database.base import Base
 from app.database.migrations import ALEMBIC_REVISION, ensure_database_schema
-from app.models.calendar import RepeatType, Schedule
+from app.models.calendar import RepeatType, Schedule, ScheduleOccurrenceState
 from app.models.finance import Account
 from app.models.journal import JournalEntry, Mood
 from app.models.notification import Notification
@@ -36,10 +36,14 @@ def test_migration_stamps_compatible_legacy_database_without_data_loss(tmp_path)
     url = f"sqlite:///{database.as_posix()}"
     engine = create_engine(url)
     Base.metadata.create_all(engine)
+    # Simulate an existing pre-upgrade desktop database: all historical tables
+    # are present, while the newly introduced occurrence state table is absent.
+    ScheduleOccurrenceState.__table__.drop(engine)
     Session = sessionmaker(bind=engine)
     with Session.begin() as db:
         db.add(Account(name="Preserved", type="CASH", initial_balance=Decimal("10"), current_balance=Decimal("10")))
     ensure_database_schema(engine, url)
+    assert "schedule_occurrence_states" in inspect(engine).get_table_names()
     with Session() as db:
         assert db.scalar(select(Account).where(Account.name == "Preserved")) is not None
     assert "alembic_version" in inspect(engine).get_table_names()

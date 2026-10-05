@@ -59,6 +59,11 @@ class ScheduleUpdate(BaseModel):
     completed: bool | None = None
 
 
+class ScheduleOccurrenceCompletion(BaseModel):
+    occurrence_start: datetime
+    completed: bool
+
+
 class ScheduleRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

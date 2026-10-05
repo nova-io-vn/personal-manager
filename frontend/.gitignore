@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 .env
+.gradle-user/
+android/.gradle/
+android/**/build/
+android/local.properties
+android/captures/
+android/app/release.keystore
+*.apk
 
 # Editor directories and files
 .vscode/*

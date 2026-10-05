@@ -21,12 +21,19 @@
         "directories": {
             "output": "release"
         },
+        "publish": [{
+            "provider": "github",
+            "owner": "nova-io-vn",
+            "repo": "personal-manager",
+            "releaseType": "release"
+        }],
         "files": [
             "main.cjs",
             "preload.cjs",
             "package.json"
         ],
-        "extraResources": [{
+        "extraResources": [
+            {
                 "from": "../backend/dist/personal-manager-backend",
                 "to": "backend"
             },
@@ -37,7 +44,14 @@
         ],
         "win": {
             "icon": "build/icon.ico",
-            "target": [{ "target": "nsis", "arch": ["x64"] }],
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ],
             "artifactName": "Personal-Manager-Setup-${version}.${ext}"
         },
         "nsis": {
@@ -46,5 +60,8 @@
             "allowToChangeInstallationDirectory": true,
             "deleteAppDataOnUninstall": false
         }
+    },
+    "dependencies": {
+        "electron-updater": "^6.8.9"
     }
 }
