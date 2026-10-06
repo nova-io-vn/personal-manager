@@ -132,14 +132,13 @@ export function CalendarPage() {
   }
 
   return (
-    <div className="page-content">
+    <div className="page-content calendar-page">
       <h2 className="sr-only">Lịch trình</h2>
       <CalendarToolbar
         label={label}
         onPrevious={() => setWeek((value) => addWeeks(value, -1))}
         onToday={() => setWeek(startOfWeek(now, { weekStartsOn: 1 }))}
         onNext={() => setWeek((value) => addWeeks(value, 1))}
-        onCreate={() => { setSlotDate(now); setSelected(null) }}
       />
       {error && <div className="mb-4 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"><span>{error}</span><button aria-label="Thử tải lại" onClick={() => void loadData()} className="font-bold underline"><RefreshCw size={14} /></button></div>}
       {loading

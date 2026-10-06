@@ -36,8 +36,14 @@ class TelegramService:
     def set_webhook(self, token: str, url: str, secret_token: str) -> DeliveryResult:
         return self._call(token, "setWebhook", {"url": url, "secret_token": secret_token, "drop_pending_updates": False})
 
+    def set_commands(self, token: str, commands: list[dict[str, str]]) -> DeliveryResult:
+        return self._call(token, "setMyCommands", {"commands": commands})
+
     def answer_callback(self, token: str, callback_query_id: str, text: str) -> DeliveryResult:
         return self._call(token, "answerCallbackQuery", {"callback_query_id": callback_query_id, "text": text})
+
+    def edit_message(self, token: str, chat_id: str, message_id: int, text: str) -> DeliveryResult:
+        return self._call(token, "editMessageText", {"chat_id": chat_id, "message_id": message_id, "text": text})
 
     def _call(self, token: str, method: str, payload: dict) -> DeliveryResult:
         if not token:

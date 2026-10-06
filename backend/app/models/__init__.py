@@ -7,9 +7,11 @@ from app.models.tasks import Task
 from app.models.debt import Debt, DebtDirection
 from app.models.cloud import CloudDevice, CloudUser, SyncChange
 from app.models.belonging import PersonalItem
+from app.models.telegram import TelegramActionDraft, TelegramDraftStatus
 
 __all__ = [
     "Account", "Budget", "Transaction", "TransactionCategory", "Schedule", "ScheduleCategory", "ScheduleOccurrenceState",
     "BodyProfile", "BodyMeasurement", "HealthDailyLog", "Food", "FoodLog", "JournalEntry", "JournalTag",
-    "ApplicationSetting", "Notification", "Task", "Debt", "DebtDirection", "PersonalItem", "CloudUser", "CloudDevice", "SyncChange",
+    "ApplicationSetting", "Notification", "Task", "Debt", "DebtDirection", "PersonalItem", "TelegramActionDraft",
+    "TelegramDraftStatus", "CloudUser", "CloudDevice", "SyncChange",
 ]

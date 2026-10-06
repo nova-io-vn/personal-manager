@@ -5,7 +5,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.database.base import Base
-from app.models import calendar, cloud, finance, health, journal, notification, tasks, debt  # noqa: F401
+from app.models import calendar, cloud, finance, health, journal, notification, tasks, debt, telegram  # noqa: F401
 
 config = context.config
 migration_url = os.getenv("ALEMBIC_DATABASE_URL") or os.getenv("DATABASE_URL")

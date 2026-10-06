@@ -1,11 +1,11 @@
 import { addDays, differenceInMinutes, format, isSameDay, startOfDay } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AlertCircle, Check, Circle, CircleCheck } from 'lucide-react'
 import type { Schedule, ScheduleCategory } from '../types/calendar'
 import { parseApiDateTime } from '../../../utils/dateTime'
 
-const HOUR_HEIGHT = 76
+const HOUR_HEIGHT = 88
 const DAY_HEIGHT = HOUR_HEIGHT * 24
 
 type TaskState = 'UPCOMING' | 'IN_PROGRESS' | 'OVERDUE' | 'COMPLETED'
@@ -49,9 +49,18 @@ export function WeekCalendar({
   const gridColumns = compact ? 'grid-cols-[64px_minmax(0,1fr)]' : 'grid-cols-[76px_repeat(7,minmax(125px,1fr))]'
   const todayIsVisible = days.some((day) => isSameDay(day, now))
   const categoryMap = new Map(categories.map((item) => [item.id, item]))
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!todayIsVisible || !scrollRef.current) return
+    const currentTop = ((now.getHours() * 60 + now.getMinutes()) / 60) * HOUR_HEIGHT
+    scrollRef.current.scrollTop = Math.max(0, currentTop - 220)
+    // Reposition only when the displayed week changes; the shared clock still moves the line.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekStart.getTime(), todayIsVisible])
 
   return (
-    <div className="calendar-scroll card">
+    <div className="calendar-scroll card" ref={scrollRef}>
       <div className={compact ? 'min-w-0' : 'min-w-[980px]'}>
         {compact && <div className="grid grid-cols-4 gap-2 border-b border-slate-100 p-3 sm:grid-cols-7">{days.map((day, index) => <button type="button" key={format(day, 'yyyy-MM-dd')} className={`min-h-11 rounded-lg px-2 text-xs font-semibold ${selectedDay === index ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-600'}`} onClick={() => setSelectedDay(index)}>{format(day, 'EEE dd', { locale: vi })}</button>)}</div>}
         <div className={`grid ${gridColumns} border-b border-slate-200 bg-white`}>
@@ -60,9 +69,9 @@ export function WeekCalendar({
             {visibleDays.map((day) => {
               const today = isSameDay(day, now)
               return (
-                <div className={`border-l border-slate-200/80 px-2 py-3.5 text-center ${today ? 'bg-blue-50/75' : ''}`} key={format(day, 'yyyy-MM-dd')}>
-                  <p className={`text-xs font-extrabold uppercase tracking-wide ${today ? 'text-blue-700' : 'text-slate-500'}`}>{format(day, 'EEEE', { locale: vi })}</p>
-                  <p className={`mx-auto mt-1 grid size-9 place-items-center rounded-full text-xl font-extrabold ${today ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-800'}`}>{format(day, 'dd')}</p>
+                <div className={`calendar-day-header ${today ? 'is-today' : ''}`} key={format(day, 'yyyy-MM-dd')}>
+                  <p className="calendar-day-name">{format(day, 'EEEE', { locale: vi })}</p>
+                  <p className="calendar-day-number">{format(day, 'dd')}</p>
                 </div>
               )
             })}
@@ -72,7 +81,7 @@ export function WeekCalendar({
         <div className={`grid ${gridColumns}`}>
           <div className="relative" style={{ height: DAY_HEIGHT }}>
             {Array.from({ length: 25 }, (_, hour) => (
-              <span className="absolute right-3 text-xs font-semibold tabular-nums text-slate-500" style={{ top: hour * HOUR_HEIGHT - 8 }} key={hour}>
+              <span className="calendar-hour-label absolute right-3" style={{ top: hour * HOUR_HEIGHT - 9 }} key={hour}>
                 {String(hour).padStart(2, '0')}:00
               </span>
             ))}
@@ -83,13 +92,14 @@ export function WeekCalendar({
               const today = isSameDay(day, now)
               return (
                 <div
-                  className={`relative border-l border-slate-100 ${today ? 'calendar-today-column' : ''}`}
+                  className={`calendar-day-column relative border-l border-slate-100 ${today ? 'calendar-today-column' : ''}`}
                   style={{ height: DAY_HEIGHT }}
                   key={format(day, 'yyyy-MM-dd')}
                   onClick={(event) => {
                     if (event.target !== event.currentTarget) return
                     const rect = event.currentTarget.getBoundingClientRect()
-                    const minutes = Math.max(0, Math.min(1439, Math.floor(((event.clientY - rect.top) / HOUR_HEIGHT) * 60)))
+                    const rawMinutes = Math.floor(((event.clientY - rect.top) / HOUR_HEIGHT) * 60)
+                    const minutes = Math.max(0, Math.min(1439, Math.round(rawMinutes / 15) * 15))
                     const slot = new Date(day)
                     slot.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0)
                     onSlotClick(slot)
@@ -119,7 +129,7 @@ export function WeekCalendar({
 
                     return (
                       <div
-                        className={`absolute inset-x-1 z-10 flex overflow-hidden rounded-md border-l-4 shadow-sm transition-colors ${state === 'COMPLETED' ? 'opacity-75' : ''}`}
+                        className={`calendar-event absolute inset-x-1 z-10 flex overflow-hidden rounded-md border-l-4 shadow-sm transition-colors ${state === 'COMPLETED' ? 'opacity-75' : ''}`}
                         style={{ top: (top / 60) * HOUR_HEIGHT, height: Math.max(((bottom - top) / 60) * HOUR_HEIGHT, 32), backgroundColor: stateStyles.backgroundColor, borderLeftColor: stateStyles.borderColor }}
                         key={`${item.id}-${item.start_datetime}`}
                       >

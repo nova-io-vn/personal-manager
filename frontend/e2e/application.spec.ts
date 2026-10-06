@@ -50,7 +50,9 @@ test('calendar create recurrence displays virtual week occurrence', async ({ pag
   const end = new Date(start); end.setHours(12)
   const startValue = (date: Date) => { const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000); return local.toISOString().slice(0, 16) }
   await page.goto('/calendar')
-  await page.getByRole('button', { name: /Lịch trình mới|Tạo lịch/i }).click()
+  const mondayColumn = page.locator('.calendar-day-column').first()
+  await mondayColumn.click({ position: { x: 48, y: 11 * 88 + 8 } })
+  await expect(page.locator('#schedule-title')).toBeVisible()
   await page.locator('#schedule-title').fill('E2E weekly review')
   await page.locator('#schedule-start').fill(startValue(start))
   await page.locator('#schedule-end').fill(startValue(end))
@@ -106,8 +108,19 @@ test('health, nutrition and journal forms persist through backend', async ({ pag
   const nutrition = await request.get('http://127.0.0.1:18766/api/nutrition/summary').then((response) => response.json()) as { calories: string }
   expect(Number(nutrition.calories)).toBeGreaterThanOrEqual(150)
   await page.getByRole('link', { name: /Nhật ký/i }).click()
-  await page.locator('#journal-content').fill('Playwright local persistence check')
-  await page.getByRole('button', { name: /Lưu nhật ký/i }).click()
+  const canvas = page.locator('canvas.drawing-canvas')
+  await expect(canvas).toBeVisible()
+  const box = await canvas.boundingBox()
+  expect(box).not.toBeNull()
+  if (box) {
+    await page.mouse.move(box.x + 80, box.y + 80)
+    await page.mouse.down()
+    await page.mouse.move(box.x + 220, box.y + 160, { steps: 8 })
+    await page.mouse.up()
+  }
+  await page.getByRole('button', { name: /Lưu trang nhật ký/i }).click()
   await page.reload()
-  await expect(page.locator('#journal-content')).toHaveValue('Playwright local persistence check')
+  await expect(page.locator('canvas.drawing-canvas')).toBeVisible()
+  const entries = await request.get('http://127.0.0.1:18766/api/journals').then((response) => response.json()) as Array<{ drawing_data: string | null }>
+  expect(entries.some((entry) => entry.drawing_data?.startsWith('data:image/png'))).toBeTruthy()
 })
