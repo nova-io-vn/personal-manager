@@ -68,7 +68,7 @@ export function DashboardPage() {
 
   return <div className="page-content dashboard-page">
     <section className="dashboard-welcome dashboard-hero">
-      <div className="dashboard-hero-copy"><p className="eyebrow">{format(now, 'EEEE, dd MMMM yyyy', { locale: vi })}</p><h1>Tổng quan</h1><h2>{greeting}</h2><p>{upcoming ? <>Lịch tiếp theo: <strong>{upcoming.title}</strong> lúc {format(parseApiDateTime(upcoming.start_datetime), 'HH:mm')}</> : todaySchedules.length ? `Bạn có ${todaySchedules.length} lịch trình hôm nay.` : 'Hôm nay đang rộng mở — hãy bắt đầu theo nhịp của bạn.'}</p></div>
+      <div className="dashboard-hero-copy"><p className="eyebrow">{format(now, 'EEEE, dd MMMM yyyy', { locale: vi })}</p><h1>Tổng quan</h1><h2>{upcoming ? `Tiếp theo: ${upcoming.title}` : greeting}</h2><p>{upcoming ? <>{format(parseApiDateTime(upcoming.start_datetime), 'HH:mm')} – {format(parseApiDateTime(upcoming.end_datetime), 'HH:mm')}{upcoming.description ? ` · ${upcoming.description}` : ''}</> : todaySchedules.length ? `Bạn có ${todaySchedules.length} lịch trình hôm nay.` : 'Hôm nay đang rộng mở — hãy bắt đầu theo nhịp của bạn.'}</p></div>
       <div className="dashboard-hero-progress"><div className="hero-progress-ring" style={{ '--progress': `${completion * 3.6}deg` } as React.CSSProperties}><span>{completedSchedules}/{todaySchedules.length}</span></div><div><strong>Hoàn thành hôm nay</strong><small>{overdueSchedules.length ? `${overdueSchedules.length} việc đang quá hạn` : 'Bạn đang theo đúng kế hoạch'}</small></div></div>
     </section>
 

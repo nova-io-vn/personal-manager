@@ -33,6 +33,9 @@ export function AppShell() {
 
   return <div className="app-shell">
     <header className="topbar">
+      <Link className="brand" to="/" aria-label="Personal Manager — Tổng quan">
+        <span className="brand-copy"><strong>Personal Manager</strong></span>
+      </Link>
       <nav className="top-nav" aria-label="Điều hướng chính">
         {navigation.map(({ label, to, icon: Icon }) => <NavLink end={to === '/'} key={to} to={to} className={({ isActive }) => `top-nav-link${isActive ? ' is-active' : ''}`}>
           <Icon size={17} strokeWidth={1.9} /><span>{label}</span>
